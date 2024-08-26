@@ -45,15 +45,15 @@
 				</div>
 				<div class="num_box">
 					<p class="text">宿舍床位入住</p>
-					<p class="data" id="occuipiedBeds">加载中</p>
+					<p class="data">{{occuipiedBeds}}床</p>
 				</div>
 				<div class="num_box">
 					<p class="text">宿舍床位总数</p>
-					<p class="data" id="totalBeds">加载中</p>
+					<p class="data">{{bedsTotal}}床</p>
 				</div>
 				<div class="num_box">
 					<p class="text">宿舍床位剩余</p>
-					<p class="data" id="availableBeds">加载中</p>
+					<p class="data">{{bedsVacant}}床</p>
 				</div>
 			</div>
 
@@ -117,8 +117,8 @@
 				progress: [98.01, 97.97, 96.38, 95.68, 94.37],
 				// 宿舍入住情况数据
 				dorm: {
-					occupied: [320, 300, 280, 260, 240],
-					vacant: [80, 100, 120, 140, 160]
+					occupied: [320],
+					vacant: [80]
 				},
 				// 新生各系人数数据
 				departments: [], // 存储系名
@@ -206,25 +206,25 @@
 					});
 			},
 			//获取宿舍信息
-			fetchDormData() {
+			fetchData() {
 			    axios.get('http://127.0.0.1:8081/getDormInfo')
-			        .then(function (response) {
-			            const data = response.data.data;  // 直接获取对象
-			            console.log('data:', data);  // 打印查看对象内容
-			
-			            // 分别获取对象中的值并展示
-			            document.getElementById('totalBeds').textContent = `${data.totalBeds} 床`;
-			            document.getElementById('occupiedBeds').textContent = `${data.occupiedBeds} 床`;
-			            document.getElementById('availableBeds').textContent = `${data.availableBeds} 床`;
-			
-			            // 调用 checkIn 函数，将获取到的床位数据传递进去
-						
-			           createChart3(data.occupiedBeds, data.availableBeds);
+			        .then(response => {
+			            if (response.data.code === 200) {
+			                // 提取并格式化数据
+			                this.bedsOccupied = response.data.data.occupiedBeds;
+			                this.bedsVacant = response.data.data.availableBeds;
+			                this.bedsTotal = response.data.data.totalBeds;
+	
+			                this.createChart3() 
+			            } else {
+			                console.error('查询失败:', response.data.msg);
+			            }
 			        })
-			        .catch(function (error) {
-			            console.error('获取数据时发生错误:', error);
+			        .catch(error => {
+			            console.error('请求失败:', error.response ? error.response.data : error.message);
 			        });
-			}
+			},
+
 			fetchRate(){
 				this.axios.get('http://127.0.0.1:8081/getRate')
 					.then(response => {
@@ -410,7 +410,7 @@
 					},
 					xAxis: {
 						type: 'category',
-						data: ['1号楼', '2号楼', '3号楼', '4号楼', '5号楼'],
+						data: ['1号楼'],
 						axisLabel: {
 							color: '#fff',
 							fontWeight: 'bold'
@@ -433,7 +433,7 @@
 					},
 					series: [{
 							name: '入住床位',
-							 data: [occupiedBeds],  // 使用传入的入住床位数据
+							 data:this.dorm.occupied,
 							type: 'bar',
 							barWidth: '30%',
 							itemStyle: {
@@ -458,7 +458,7 @@
 						},
 						{
 							name: '剩余床位',
-							data: [availableBeds],  // 使用传入的剩余床位数据
+							data: this.dorm.vacant,
 							type: 'bar',
 							barWidth: '30%',
 							itemStyle: {
