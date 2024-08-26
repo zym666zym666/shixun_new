@@ -4,7 +4,7 @@
 			<el-menu default-active="1" class="el-menu-vertical-demo" @open="handleOpen" @close="handleClose"
 				:collapse="isCollapse" unique-opened :collapse-transition="collapse-transition" router>
 				<div class="system-title">
-					<img src="../../assets/logo1.png" />
+					<img src="../../assets/logo1.jpg" />
 					<span v-if="title">重庆大学</span>
 				</div>
 				<el-menu-item index="/welcome">
