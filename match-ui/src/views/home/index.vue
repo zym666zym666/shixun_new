@@ -17,25 +17,9 @@
 						<i class="el-icon-setting"></i>
 						<span slot="title">系统管理</span>
 					</template>
-					<el-menu-item index="/college">学院管理</el-menu-item>
+					<el-menu-item index="/college">宿舍管理</el-menu-item>
 					<el-menu-item index="/notice">通知公告</el-menu-item>
 					<el-menu-item index="/users">用户管理</el-menu-item>
-				</el-submenu>
-				<el-submenu index="3">
-					<template slot="title">
-						<i class="el-icon-s-platform"></i>
-						<span slot="title">竞赛管理</span>
-					</template>
-					<el-menu-item index="3-1">赛项查询</el-menu-item>
-					<el-menu-item index="3-2">团队管理</el-menu-item>
-					<el-menu-item index="3-3">竞赛报名</el-menu-item>
-				</el-submenu>
-				<el-submenu index="4">
-					<template slot="title">
-						<i class="el-icon-trophy-1"></i>
-						<span slot="title">成绩管理</span>
-					</template>
-					<el-menu-item index="4-1">成绩查询</el-menu-item>
 				</el-submenu>
 				<el-submenu index="5">
 					<template slot="title">

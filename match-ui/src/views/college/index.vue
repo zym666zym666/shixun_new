@@ -4,37 +4,34 @@
 			<!-- 操作栏 -->
 			<el-col :span="24">
 				<el-card class="box-card">
-					<el-input v-model="input" placeholder="请输入学院名称" size="small" class="filter-input"></el-input>
-					<el-input v-model="input" placeholder="请输入学院地址" size="small" class="filter-input"></el-input>
-					<el-button type="primary" icon="el-icon-search" size="small" plain>搜索</el-button>
-					<el-button type="primary" icon="el-icon-refresh-right" size="small">重置</el-button><br />
-
+					<el-input v-model="inputBuildingId" placeholder="请输入宿舍号" size="small"
+						class="filter-input"></el-input>
 					<el-button type="primary" size="small" icon="el-icon-plus" class="button" @click="handleCreate()"
 						plain>新增</el-button>
-					<el-button type="success" size="small" icon="el-icon-download" class="button" plain>导入</el-button>
-					<el-button type="warning" size="small" icon="el-icon-upload2" class="button" plain>导出</el-button>
-					<el-button type="danger" size="small" icon="el-icon-delete" class="button" plain>批量删除</el-button>
+					<el-button type="primary" icon="el-icon-search" size="small" plain
+						@click="selectDorm(inputBuildingId)">搜索</el-button>
+					<el-button type="primary" icon="el-icon-refresh-right" size="small" @click="resetSearch()">重置</el-button>
 				</el-card>
+
 			</el-col>
 			<!-- 数据列表部分 -->
 			<el-card class="box-card data">
 				<el-table :data="tableData" style="width: 100%" size="small">
 					<el-table-column type="selection" width="55"></el-table-column>
-					<el-table-column prop="id" label="序号" width="80">
+
+					<el-table-column prop="building_id" label="宿舍号" width="80"></el-table-column>
+					<!-- 列标题为"最大容量"，内容固定为4 -->
+					<el-table-column label="最大容量" width="180">
+						<template>
+							4 <!-- 这里固定显示为4 -->
+						</template>
 					</el-table-column>
-					<el-table-column prop="college" label="学院名称" width="180">
-					</el-table-column>
-					<el-table-column prop="address" label="学院地址">
-					</el-table-column>
-					<el-table-column prop="telephone" label="联系电话">
-					</el-table-column>
-					<el-table-column prop="profile" label="学院简介">
-					</el-table-column>
+					<el-table-column prop="occupied_count" label="已入住人数"></el-table-column>
+
 					<el-table-column label="操作" align="center" width="180px">
-						<template slot-scope="">
-							<el-button type="primary" size="small" icon="el-icon-edit" class="button" @click="handleUpdate()"  plain>编辑
-							</el-button>
-							<el-button type="danger" size="small" icon="el-icon-delete" class="button" plain>删除
+						<template slot-scope="scope">
+							<el-button type="danger" size="small" icon="el-icon-delete" class="button" plain
+								@click="handleDelete(scope.row.building_id)">删除
 							</el-button>
 						</template>
 					</el-table-column>
@@ -48,23 +45,16 @@
 		</el-row>
 		<!-- 添加弹框插件 -->
 		<div class="add-form">
-			<el-dialog title="新增学院" :visible.sync="dialogFormVisible">
+			<el-dialog title="新增宿舍" :visible.sync="dialogFormVisible">
 				<el-row>
 					<el-col :span="24">
 						<el-form :model="formData" :rules="rules" ref="formData">
-							<el-form-item label="学院名称" prop="college" label-position="right" label-width="100px">
-								<el-input v-model="formData.college" autocomplete="off"></el-input>
+							<el-form-item label="宿舍号" prop="buildingId" label-position="right" label-width="100px">
+								<el-input v-model="formData.buildingId" autocomplete="off"></el-input>
 							</el-form-item>
 
-							<el-form-item label="学院地址" prop="address" label-position="right" label-width="100px">
-								<el-input v-model="formData.address"></el-input>
-							</el-form-item>
-							<el-form-item label="联系电话" prop="telephone" label-position="right" label-width="100px">
-								<el-input v-model="formData.address"></el-input>
-							</el-form-item>
-
-							<el-form-item label="学院简介" label-position="right" label-width="100px">
-								<el-input type="textarea" v-model="formData.profile"></el-input>
+							<el-form-item label="最大容量" label-position="right" label-width="100px" prop="content">
+								<el-input type="textarea" v-model="formData.content"></el-input>
 							</el-form-item>
 						</el-form>
 					</el-col>
@@ -73,41 +63,11 @@
 
 				<div slot="footer" class="dialog-footer">
 					<el-button @click="dialogFormVisible = false">取 消</el-button>
-					<el-button type="primary" @click="dialogFormVisible = false">确 定</el-button>
+					<el-button type="primary" @click="handleAdd(),dialogFormVisible = false">确 定</el-button>
 				</div>
 			</el-dialog>
 		</div>
-		<!-- 编辑修改框 -->
-		<div class="update-form">
-			<el-dialog title="修改信息" :visible.sync="dialogFormVisibleEdit">
-				<el-row>
-					<el-col :span="24">
-						<el-form :model="formData" :rules="rules" ref="formData">
-							<el-form-item label="学院名称" prop="college" label-position="right" label-width="100px">
-								<el-input v-model="formData.college" autocomplete="off"></el-input>
-							</el-form-item>
-		
-							<el-form-item label="学院地址" prop="address" label-position="right" label-width="100px">
-								<el-input v-model="formData.address"></el-input>
-							</el-form-item>
-							<el-form-item label="联系电话" prop="telephone" label-position="right" label-width="100px">
-								<el-input v-model="formData.address"></el-input>
-							</el-form-item>
-		
-							<el-form-item label="学院简介" label-position="right" label-width="100px">
-								<el-input type="textarea" v-model="formData.profile"></el-input>
-							</el-form-item>
-						</el-form>
-					</el-col>
-		
-				</el-row>
-		
-				<div slot="footer" class="dialog-footer">
-					<el-button @click="dialogFormVisible = false">取 消</el-button>
-					<el-button type="primary" @click="dialogFormVisible = false">确 定</el-button>
-				</div>
-			</el-dialog>
-		</div>
+
 	</div>
 </template>
 
@@ -115,95 +75,124 @@
 	export default {
 		data() {
 			return {
-				tableData: [{
-						id: 1,
-						college: '软件学院',
-						telephone: '023-88968671',
-						address: '图书馆2031',
-						profile: '软件学院是一个以培养新一代应用..'
-					},
-					{
-						id: 2,
-						college: '新媒体艺术学院',
-						telephone: '023-88968703',
-						address: '图书馆2032',
-						profile: '金融学院开设金融学..'
-					},
-					{
-						id: 3,
-						college: '金融学院',
-						telephone: '023-88968673',
-						address: '图书馆2033',
-						profile: '新媒体艺术学院自建立以来..'
-					},
-					{
-						id: 4,
-						college: '会计学院',
-						telephone: '023-88968674',
-						address: '图书馆2034',
-						profile: '新媒体艺术学院自建立以来..'
-					},
-					{
-						id: 5,
-						college: '经济学院',
-						telephone: '023-88968673',
-						address: '图书馆2035',
-						profile: '新媒体艺术学院自建立以来..'
-					},
-					{
-						id: 6,
-						college: '物流工程学院',
-						telephone: '023-88968673',
-						address: '图书馆2036',
-						profile: '新媒体艺术学院自建立以来..'
-					},
-					{
-						id: 7,
-						college: '财富管理学院',
-						telephone: '023-88968673',
-						address: '图书馆2037',
-						profile: '新媒体艺术学院自建立以来..'
-					}
-				],
+				tableData: [],
 				dialogFormVisible: false,
-				dialogFormVisibleEdit:false,
+				dialogFormVisibleEdit: false,
 				/* 表单数据 */
 				formData: {
-					college: '',
-					telephone: '',
-					address: '',
-					profile: ''
-				},
-				/*数据校验 */
-				rules: {
-					college: [{
-						required: true,
-						message: '请输入学院名称',
-						trigger: 'blur'
-					}],
-					telephone: [{
-						required: true,
-						message: '请输入联系号码',
-						trigger: 'blur'
-					}],
-					address: [{
-						required: true,
-						message: '请输入学院地址',
-						trigger: 'blur'
-					}],
+					buildingId: '',
+					content: '',
 
-				}
+				},
+
+				inputBuildingId: "",
 			}
+		},
+		mounted() {
+			//页面加载完后调用查询数据的方法
+			this.handleQuery()
 		},
 		methods: {
 			/* 弹出添加窗口 */
 			handleCreate() {
 				this.dialogFormVisible = true
 			},
-			/* 弹出修改窗口 */
-			handleUpdate() {
-				this.dialogFormVisibleEdit = true
-			}
+
+			/**
+			 * 发布通知
+			 */
+			handleAdd() {
+				if (!this.formData.buildingId) {
+					this.$message.error("请输入宿舍号");
+					return;
+				}
+				const url = `/addDorm?buildingId=${this.formData.buildingId}`
+				// 使用Axios发送POST请求到后端API
+				this.axios.post(url).then(response => {
+					if (response.data.code == 200) {
+						// 如果请求成功，关闭对话框并清空表单
+						this.dialogFormVisible = false;
+						this.formData.buildingId = ''; // 重置表单数据
+						// 重新查询数据以更新表格
+						this.handleQuery();
+						this.$message.success("宿舍信息已添加");
+					} else {
+						// 处理错误情况
+						this.$message.error(response.data.msg || "添加失败，请稍后重试");
+					}
+				}).catch(error => {
+					// 网络或其他错误处理
+					this.$message.error("网络连接错误或服务器故障，请稍后重试！");
+					console.error("添加宿舍失败：", error); // 在控制台输出错误详情
+				});
+			},
+
+
+			//查询数据
+			handleQuery() {
+				this.axios.get('/getAllDormId').then((res) => {
+					if (res.data.code == 200) {
+						this.tableData = res.data.data
+
+						console.log(this.tableData)
+					} else {
+						this.$message.error("数据加载失败")
+					}
+				}).catch(() => {
+					this.$message.error("网络连接错误,请稍后重试！");
+				})
+			},
+
+			//删除宿舍
+			handleDelete(buildingId) {
+				this.$confirm('此操作将永久删除宿舍, 是否继续?', '提示', {
+					confirmButtonText: '确定',
+					cancelButtonText: '取消',
+					type: 'warning'
+				}).then(() => {
+					//确定删除，发送求到后端控制器
+					const urll = `/deleteDorm?buildingId=${buildingId}`;
+					this.axios.post(urll).then((res) => {
+						if (res.data.code == 200) {
+							this.$message.success("数据删除成功")
+							//重新加载数据
+							this.handleQuery()
+						} else {
+							this.$message.error("数据删除失败！")
+						}
+					})
+				}).catch(() => {
+					this.$message({
+						type: 'info',
+						message: '已取消删除'
+					});
+				});
+			},
+
+			//搜索宿舍
+			selectDorm(buildingId) {
+				if (!buildingId) {
+					this.$message.warning('请输入宿舍号进行搜索');
+					return;
+				}
+
+				// 过滤宿舍列表，找到宿舍号匹配的数据
+				const filteredDorms = this.tableData.filter(dorm => dorm.building_id === buildingId);
+
+				if (filteredDorms.length > 0) {
+					this.tableData = filteredDorms; // 更新表格数据为搜索结果
+					this.$message.success('搜索到宿舍信息');
+				} else {
+					this.$message.warning('没有找到对应的宿舍信息');
+				}
+			},
+
+			// 重置搜索输入框和表格数据
+			resetSearch() {
+				this.inputBuildingId = ''; // 重置搜索输入框
+				this.handleQuery(); // 重新加载原始宿舍数据
+				this.$message.info('搜索已重置');
+			},
 		}
 
 	}
@@ -213,6 +202,7 @@
 	/* 操作框样式 */
 	.box-card {
 		margin: 5px;
+		width: 100%;
 	}
 
 	/* 搜索框样式 */
