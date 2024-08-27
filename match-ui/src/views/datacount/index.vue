@@ -116,10 +116,11 @@
 				// 各环节进度数据
 				progress: [98.01, 97.97, 96.38, 95.68, 94.37],
 				// 宿舍入住情况数据
-				dorm: {
-					occupied: [320],
-					vacant: [80]
-				},
+				this.dorm = [
+				  { building_id: '301', occupied: 320, vacant: 80 },
+				  { building_id: '401', occupied: 150, vacant: 50 },
+				];
+
 				// 新生各系人数数据
 				departments: [], // 存储系名
 				studentCounts: [], // 存储学生人数
@@ -135,6 +136,7 @@
 			this.fetchCnt();
 			this.fetchFacultyData();
 			this.fetchRate();
+			this.fetchBuildId();
 		},
 		methods: {
 			getTime() {
@@ -172,6 +174,21 @@
 						console.error('请求失败:', error);
 					});
 			},
+			//获取宿舍编号
+			fetchBuildId(){
+				this.axios.get('http://127.0.0.1:8081/getBuildId')
+				if (response.data.code === 200) {
+						this.buildId = response.data.data;
+					} else {
+						console.error('查询失败:', response.data.msg);
+					}
+				})
+				.catch(error => {
+					console.error('请求失败:', error);
+				});
+			},
+			
+			
 			// 获取当前批次
 			fetchCnt() {
 				this.axios.get('http://127.0.0.1:8081/getBatch')
@@ -391,100 +408,125 @@
 				};
 				chart2.setOption(option2);
 			},
-			createChart3(){
-				// 宿舍入住情况 (柱状图)
-				var chart3 = this.$echarts.init(document.getElementById('chart3'));
-				var option3 = {
-					grid: {
-						top: 0,
-						left: 40
-					},
-					legend: {
-						data: ['入住床位', '剩余床位'],
-						textStyle: {
-							color: '#fff',
-							fontWeight: 'bold'
-						},
-						right: 40,
-						top: 0
-					},
-					xAxis: {
-						type: 'category',
-						data: ['1号楼'],
-						axisLabel: {
-							color: '#fff',
-							fontWeight: 'bold'
-						}
-					},
-					yAxis: {
-						type: 'value',
-						axisLine: {
-							show: false
-						},
-						axisTick: {
-							show: false
-						},
-						splitLine: {
-							show: false
-						},
-						axisLabel: {
-							show: false
-						},
-					},
-					series: [{
-							name: '入住床位',
-							 data:this.dorm.occupied,
-							type: 'bar',
-							barWidth: '30%',
-							itemStyle: {
-								color: '#0000ff'
-							},
-							label: {
-								normal: {
-									show: true,
-									position: 'inside', // 数字显示在柱子内部
-									align: 'center', // 水平居中对齐
-									verticalAlign: 'middle', // 垂直居中对齐
-									formatter: function(param) {
-										// 直接显示数据点的值
-										return param.value;
-									},
-									textStyle: {
-										color: '#fff', // 文本颜色设置为白色
-										fontSize: 13 // 根据需要调整字体大小
-									}
-								}
-							}
-						},
-						{
-							name: '剩余床位',
-							data: this.dorm.vacant,
-							type: 'bar',
-							barWidth: '30%',
-							itemStyle: {
-								color: '#ffaa00'
-							},
-							label: {
-								normal: {
-									show: true,
-									position: 'inside', // 数字显示在柱子内部
-									align: 'center', // 水平居中对齐
-									verticalAlign: 'middle', // 垂直居中对齐
-									formatter: function(param) {
-										// 直接显示数据点的值
-										return param.value;
-									},
-									textStyle: {
-										color: '#fff', // 文本颜色设置为白色
-										fontSize: 13 // 根据需要调整字体大小
-									}
-								}
-							}
-						}
-					]
-				};
-				chart3.setOption(option3);
+			createChart3() {
+			  // 初始化楼层的入住和剩余床位数据
+			  let floors = {}; // { '3': { occupied: 0, vacant: 0 }, '4': { occupied: 0, vacant: 0 } }
+			
+			  this.dorm.forEach(room => {
+			    // 获取楼层数，假设 building_id 是类似 '301', '401' 的格式，取第一个字符作为楼层
+			    let floor = room.building_id.charAt(0); // 提取首位字符作为楼层数
+			
+			    // 初始化该楼层的数据结构
+			    if (!floors[floor]) {
+			      floors[floor] = { occupied: 0, vacant: 0 };
+			    }
+			
+			    // 累加入住和剩余床位数
+			    floors[floor].occupied += room.occupied;
+			    floors[floor].vacant += room.vacant;
+			  });
+			
+			  // 将楼层和对应的数据提取出来，供 ECharts 使用
+			  let xAxisData = Object.keys(floors); // 楼层数 ['3', '4']
+			  let occupiedData = Object.values(floors).map(f => f.occupied); // 入住床位 [320, 150, ...]
+			  let vacantData = Object.values(floors).map(f => f.vacant); // 剩余床位 [80, 50, ...]
+			
+			  // 宿舍入住情况 (柱状图)
+			  var chart3 = this.$echarts.init(document.getElementById('chart3'));
+			  var option3 = {
+			    grid: {
+			      top: 0,
+			      left: 40
+			    },
+			    legend: {
+			      data: ['入住床位', '剩余床位'],
+			      textStyle: {
+			        color: '#fff',
+			        fontWeight: 'bold'
+			      },
+			      right: 40,
+			      top: 0
+			    },
+			    xAxis: {
+			      type: 'category',
+			      data: xAxisData, // 使用处理后的楼层数据
+			      axisLabel: {
+			        color: '#fff',
+			        fontWeight: 'bold'
+			      }
+			    },
+			    yAxis: {
+			      type: 'value',
+			      axisLine: {
+			        show: false
+			      },
+			      axisTick: {
+			        show: false
+			      },
+			      splitLine: {
+			        show: false
+			      },
+			      axisLabel: {
+			        show: false
+			      },
+			    },
+			    series: [
+			      {
+			        name: '入住床位',
+			        data: occupiedData, // 使用处理后的入住床位数据
+			        type: 'bar',
+			        barWidth: '30%',
+			        itemStyle: {
+			          color: '#0000ff'
+			        },
+			        label: {
+			          normal: {
+			            show: true,
+			            position: 'inside', // 数字显示在柱子内部
+			            align: 'center', // 水平居中对齐
+			            verticalAlign: 'middle', // 垂直居中对齐
+			            formatter: function(param) {
+			              // 直接显示数据点的值
+			              return param.value;
+			            },
+			            textStyle: {
+			              color: '#fff', // 文本颜色设置为白色
+			              fontSize: 13 // 根据需要调整字体大小
+			            }
+			          }
+			        }
+			      },
+			      {
+			        name: '剩余床位',
+			        data: vacantData, // 使用处理后的剩余床位数据
+			        type: 'bar',
+			        barWidth: '30%',
+			        itemStyle: {
+			          color: '#ffaa00'
+			        },
+			        label: {
+			          normal: {
+			            show: true,
+			            position: 'inside', // 数字显示在柱子内部
+			            align: 'center', // 水平居中对齐
+			            verticalAlign: 'middle', // 垂直居中对齐
+			            formatter: function(param) {
+			              // 直接显示数据点的值
+			              return param.value;
+			            },
+			            textStyle: {
+			              color: '#fff', // 文本颜色设置为白色
+			              fontSize: 13 // 根据需要调整字体大小
+			            }
+			          }
+			        }
+			      }
+			    ]
+			  };
+			  chart3.setOption(option3);
 			},
+
+
 			createChart4(){
 				// 新生各系人数 (柱状图)
 				var chart4 = this.$echarts.init(document.getElementById('chart4'));
