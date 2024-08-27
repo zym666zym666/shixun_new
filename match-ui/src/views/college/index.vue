@@ -52,10 +52,6 @@
 							<el-form-item label="宿舍号" prop="buildingId" label-position="right" label-width="100px">
 								<el-input v-model="formData.buildingId" autocomplete="off"></el-input>
 							</el-form-item>
-
-							<el-form-item label="最大容量" label-position="right" label-width="100px" prop="content">
-								<el-input type="textarea" v-model="formData.content"></el-input>
-							</el-form-item>
 						</el-form>
 					</el-col>
 

@@ -5,14 +5,11 @@
 			<el-col :span="24">
 				<el-card class="box-card">
 					<el-input v-model="input" placeholder="请输入通知标题" size="small" class="filter-input"></el-input>
-					<el-input v-model="input" placeholder="请输入时间" size="small" class="filter-input"></el-input>
-					<el-button type="primary" icon="el-icon-search" size="small" plain>搜索</el-button>
+					<el-button type="primary" icon="el-icon-search" size="small" @click="search()" plain>搜索</el-button>
 					<el-button type="primary" icon="el-icon-refresh-right" size="small">重置</el-button><br />
 
 					<el-button type="primary" size="small" icon="el-icon-plus" class="button" @click="handleCreate()"
 						plain>新增</el-button>
-					<el-button type="success" size="small" icon="el-icon-download" class="button" plain>导入</el-button>
-					<el-button type="warning" size="small" icon="el-icon-upload2" class="button" plain>导出</el-button>
 					<el-button type="danger" size="small" icon="el-icon-delete" class="button" plain>批量删除</el-button>
 				</el-card>
 			</el-col>
@@ -28,10 +25,10 @@
 					</el-table-column>
 					
 					<el-table-column label="操作" align="center" width="180px">
-						<template slot-scope="">
-							<el-button type="primary" size="small" icon="el-icon-edit" class="button" @click="handleUpdate()"  plain>编辑
+						<template slot-scope="scope">
+							<el-button type="primary" size="small" icon="el-icon-edit" class="button" @click="handleUpdate(scope.row)"  plain>编辑
 							</el-button>
-							<el-button type="danger" size="small" icon="el-icon-delete" class="button" plain>删除
+							<el-button type="danger" size="small" icon="el-icon-delete" class="button" plain @click="handleDelete(scope.row.id)">删除
 							</el-button>
 						</template>
 					</el-table-column>
@@ -49,12 +46,12 @@
 				<el-row>
 					<el-col :span="24">
 						<el-form :model="formData" :rules="rules" ref="formData">
-							<el-form-item label="标题" prop="college" label-position="right" label-width="100px">
-								<el-input v-model="formData.college" autocomplete="off"></el-input>
+							<el-form-item label="标题" prop="title" label-position="right" label-width="100px">
+								<el-input v-model="formData.title" autocomplete="off"></el-input>
 							</el-form-item>
 
-							<el-form-item label="通知内容" label-position="right" label-width="100px">
-								<el-input type="textarea" v-model="formData.profile"></el-input>
+							<el-form-item label="通知内容" label-position="right" label-width="100px" prop="content">
+								<el-input type="textarea" v-model="formData.content"></el-input>
 							</el-form-item>
 						</el-form>
 					</el-col>
@@ -63,7 +60,7 @@
 
 				<div slot="footer" class="dialog-footer">
 					<el-button @click="dialogFormVisible = false">取 消</el-button>
-					<el-button type="primary" @click="dialogFormVisible = false">确 定</el-button>
+					<el-button type="primary" @click="handleAdd()">确 定</el-button>
 				</div>
 			</el-dialog>
 		</div>
@@ -73,19 +70,12 @@
 				<el-row>
 					<el-col :span="24">
 						<el-form :model="formData" :rules="rules" ref="formData">
-							<el-form-item label="学院名称" prop="college" label-position="right" label-width="100px">
-								<el-input v-model="formData.college" autocomplete="off"></el-input>
+							<el-form-item label="标题" prop="college" label-position="right" label-width="100px">
+								<el-input v-model="formData.title" autocomplete="off"></el-input>
 							</el-form-item>
-		
-							<el-form-item label="学院地址" prop="address" label-position="right" label-width="100px">
-								<el-input v-model="formData.address"></el-input>
-							</el-form-item>
-							<el-form-item label="联系电话" prop="telephone" label-position="right" label-width="100px">
-								<el-input v-model="formData.address"></el-input>
-							</el-form-item>
-		
-							<el-form-item label="学院简介" label-position="right" label-width="100px">
-								<el-input type="textarea" v-model="formData.profile"></el-input>
+					
+							<el-form-item label="通知内容" label-position="right" label-width="100px">
+								<el-input type="textarea" v-model="formData.content"></el-input>
 							</el-form-item>
 						</el-form>
 					</el-col>
@@ -94,7 +84,7 @@
 		
 				<div slot="footer" class="dialog-footer">
 					<el-button @click="dialogFormVisible = false">取 消</el-button>
-					<el-button type="primary" @click="dialogFormVisible = false">确 定</el-button>
+					<el-button type="primary" @click="handleEdit()">确 定</el-button>
 				</div>
 			</el-dialog>
 		</div>
@@ -105,48 +95,36 @@
 	export default {
 		data() {
 			return {
-				tableData: [{
-						id: 1,
-						title: '关于新学期开学新生报到通知',
-						content: '新学期新生报到通知，关于新学期开学新生报到通知关于新学期开学新生报到通知',
-						date: '2024-8-23'
-					},
-					{
-						id: 2,
-						title: '关于新学期开学新生报到通知',
-						content: '新学期新生报到通知，关于新学期开学新生报到通知关于新学期开学新生报到通知',
-						date: '2024-8-23'
-					}
-				],
+				tableData: [],
 				dialogFormVisible: false,
 				dialogFormVisibleEdit:false,
 				/* 表单数据 */
 				formData: {
-					college: '',
-					telephone: '',
-					address: '',
-					profile: ''
+					title: '',
+					content: '',
+					
 				},
+				input:"",
 				/*数据校验 */
 				rules: {
-					college: [{
+					title: [{
 						required: true,
-						message: '请输入学院名称',
+						message: '请输入通知标题',
 						trigger: 'blur'
 					}],
-					telephone: [{
+					content: [{
 						required: true,
-						message: '请输入联系号码',
+						message: '请输入通知内容',
 						trigger: 'blur'
-					}],
-					address: [{
-						required: true,
-						message: '请输入学院地址',
-						trigger: 'blur'
-					}],
+					}]
+					
 
 				}
 			}
+		},
+		mounted() {
+			//页面加载完后调用查询数据的方法
+			this.handleQuery()
 		},
 		methods: {
 			/* 弹出添加窗口 */
@@ -154,9 +132,113 @@
 				this.dialogFormVisible = true
 			},
 			/* 弹出修改窗口 */
-			handleUpdate() {
+			handleUpdate(row) {
 				this.dialogFormVisibleEdit = true
-			}
+				this.formData = row
+			},
+			/**
+			 * 发布通知
+			 */
+			handleAdd() {
+				this.$refs.formData.validate((valid) => {
+					if (valid) {
+						this.axios.post("/notice", this.formData).then((res) => {
+							if (res.data.code == 200) {
+								this.$message.success("通知信息已发布");
+								//关闭登记窗口
+								this.dialogFormVisible = false;
+								//重置表单
+								this.formData={};
+								//查询数据
+								//this.handleQuery()
+								this.$nextTick(() => {
+									this.handleQuery();
+								});
+							} else {
+								this.$message.success(res.data.msg);
+							}
+						}).catch(() => {
+							this.$message.error("网络连接错误,请稍后重试！");
+						})
+					} else {
+						this.$message.error("请输入信息");
+					}
+				})
+			},
+			
+			//查询数据
+			handleQuery(){
+				this.axios.get('/notice').then((res) => {
+					if(res.data.code == 200){
+						this.tableData = res.data.data
+					}else{
+						this.$message.error("数据加载失败")
+					}
+				}).catch(()=>{
+					this.$message.error("网络连接错误,请稍后重试！");
+				})
+			},
+			
+			/* 修改认领信息 */
+			handleEdit() {
+				this.axios.put("/notice", this.formData).then((res) => {
+					if (res.data.code == 200) {
+						this.$message.success("认领信息修改成功")
+						//关闭窗口
+						this.dialogFormVisibleEdit = false
+						//重新加载数据
+						this.handleQuery()
+						//重置表单数据
+						this.formData = {}
+					} else {
+						this.$message.error("信息修改失败,稍后重试")
+					}
+				}).catch(() => {
+					this.$message.waring("网络连接错误")
+				})
+			},
+			
+			/* 删除通知信息 */
+			handleDelete(id) {
+				this.$confirm('此操作将永久删除数据, 是否继续?', '提示', {
+					confirmButtonText: '确定',
+					cancelButtonText: '取消',
+					type: 'warning'
+				}).then(() => {
+					//确定删除，发送求到后端控制器
+					this.axios.delete("/notice/" + id).then((res) => {
+						if (res.data.code == 200) {
+							this.$message.success("数据删除成功")
+							//重新加载数据
+							this.handleQuery()
+						} else {
+							this.$message.error("数据删除失败！")
+						}
+					})
+				}).catch(() => {
+					this.$message({
+						type: 'info',
+						message: '已取消删除'
+					});
+				});
+			},
+			search() {
+				const url = `/getNotice?title=${this.input}`;
+				this.axios.get(url).then((res) => {
+					if (res.data.code == 200) {
+						this.$message.success("搜索请求成功");
+						//重置表单
+						console.log(res.data.data);
+						this.tableData = res.data.data;
+						console.log(this.tableData);
+					}
+
+				})
+			},
+			clear() {
+				this.input = "";
+			},
+
 		}
 
 	}
