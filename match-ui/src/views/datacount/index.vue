@@ -45,7 +45,7 @@
 				</div>
 				<div class="num_box">
 					<p class="text">宿舍床位入住</p>
-					<p class="data">{{occuipiedBeds}}床</p>
+					<p class="data">{{bedsOccupied}}床</p>
 				</div>
 				<div class="num_box">
 					<p class="text">宿舍床位总数</p>
@@ -112,21 +112,25 @@
 				// 宿舍床位剩余数
 				bedsVacant: 930,
 				// 线上与现场报名分布数据
-				online: 40,
+				online: 100,
 				// 各环节进度数据
 				progress: [98.01, 97.97, 96.38, 95.68, 94.37],
 				// 宿舍入住情况数据
 				dorm: {
-					occupied: [320],
-					vacant: [80]
+					floor: [],
+					occupied: [],
+					vacant: []
 				},
+
+
 				// 新生各系人数数据
 				departments: [], // 存储系名
 				studentCounts: [], // 存储学生人数
 				// 报到人数趋势数据
 				trends: {
-					online: [520, 202, 60, 60, 50],
-					onsite: [450, 380, 350, 250, 650]
+					online: [520, 202, 60],
+					date:[],
+					onsite: [0, 0, 0]
 				}
 			}
 		},
@@ -135,6 +139,9 @@
 			this.fetchCnt();
 			this.fetchFacultyData();
 			this.fetchRate();
+			this.fetchData();
+			this.fetchBuildingId();
+			this.fetchChart();
 		},
 		methods: {
 			getTime() {
@@ -172,6 +179,26 @@
 						console.error('请求失败:', error);
 					});
 			},
+			//获取宿舍编号
+			fetchBuildingId() {
+				this.axios.get('http://127.0.0.1:8081/getBuildId')
+					.then(response => {
+						if (response.data.code === 200) {
+							console.log(response);
+							this.dorm.floor = response.data.data.map(item => item.floor);
+							this.dorm.occupied = response.data.data.map(item => item.occupied);
+							this.dorm.vacant = response.data.data.map(item => item.vacant);
+
+							this.createChart3();
+						} else {
+							console.error('查询失败:', response.data.msg);
+						}
+					})
+					.catch(error => {
+						console.error('请求失败:', error);
+					});
+			},
+
 			// 获取当前批次
 			fetchCnt() {
 				this.axios.get('http://127.0.0.1:8081/getBatch')
@@ -207,31 +234,47 @@
 			},
 			//获取宿舍信息
 			fetchData() {
-			    axios.get('http://127.0.0.1:8081/getDormInfo')
-			        .then(response => {
-			            if (response.data.code === 200) {
-			                // 提取并格式化数据
-			                this.bedsOccupied = response.data.data.occupiedBeds;
-			                this.bedsVacant = response.data.data.availableBeds;
-			                this.bedsTotal = response.data.data.totalBeds;
-	
-			                this.createChart3() 
-			            } else {
-			                console.error('查询失败:', response.data.msg);
-			            }
-			        })
-			        .catch(error => {
-			            console.error('请求失败:', error.response ? error.response.data : error.message);
-			        });
+				this.axios.get('http://127.0.0.1:8081/getDormInfo')
+					.then(response => {
+						if (response.data.code === 200) {
+							// 提取并格式化数据
+							this.bedsOccupied = response.data.data.occupiedBeds;
+							this.bedsVacant = response.data.data.availableBeds;
+							this.bedsTotal = response.data.data.totalBeds;
+							this.residents = response.data.data.occupiedBeds;
+						} else {
+							console.error('查询失败:', response.data.msg);
+						}
+					})
+					.catch(error => {
+						console.error('请求失败:', error.response ? error.response.data : error.message);
+					});
 			},
-
-			fetchRate(){
+			// 报到完成率
+			fetchRate() {
 				this.axios.get('http://127.0.0.1:8081/getRate')
 					.then(response => {
 						// 假设后端返回的数据格式是 { code: 0, msg: '成功', data: count }
 						if (response.data.code === 200) {
-							this.rate = (response.data.data)*100;
+							this.rate = (response.data.data) * 100;
 							this.createRateChart();
+						} else {
+							console.error('查询失败:', response.data.msg);
+						}
+					})
+					.catch(error => {
+						console.error('请求失败:', error);
+					});
+			},
+			// 获取每日报道人数
+			fetchChart() {
+				this.axios.get('http://127.0.0.1:8081/getRen')
+					.then(response => {
+						// 假设后端返回的数据格式是 { code: 0, msg: '成功', data: count }
+						if (response.data.code === 200) {
+							this.trends.date = response.data.data.map(item => item.date);
+							this.trends.online = response.data.data.map(item => item.count);
+							this.createChart5();
 						} else {
 							console.error('查询失败:', response.data.msg);
 						}
@@ -278,13 +321,14 @@
 				};
 				chartRate.setOption(optionRate);
 			},
-			createChart1(){
+			createChart1() {
 				// 线上与现场报名分布 (饼图)
 				var chart1 = this.$echarts.init(document.getElementById('chart1'));
 				var option1 = {
 					series: [{
 						type: 'pie',
-						center: ['50%', '45%'],
+						center: ['50%', '46%'],
+						radius: ['0%', '63%'],
 						label: {
 							normal: {
 								formatter: '{b}\n{d}%', // 统一设置标签格式为名称和百分比
@@ -312,7 +356,7 @@
 				};
 				chart1.setOption(option1);
 			},
-			createChart2(){
+			createChart2() {
 				// 各环节进度 (横条状条形图)
 				var chart2 = this.$echarts.init(document.getElementById('chart2'));
 				var option2 = {
@@ -391,13 +435,15 @@
 				};
 				chart2.setOption(option2);
 			},
-			createChart3(){
-				// 宿舍入住情况 (柱状图)
+			createChart3() {
+				// 初始化楼层的入住和剩余床位数据
+
 				var chart3 = this.$echarts.init(document.getElementById('chart3'));
 				var option3 = {
 					grid: {
-						top: 0,
-						left: 40
+						top: 20,
+						left: 40,
+						height: '60%'
 					},
 					legend: {
 						data: ['入住床位', '剩余床位'],
@@ -406,11 +452,11 @@
 							fontWeight: 'bold'
 						},
 						right: 40,
-						top: 0
+						top: 0,
 					},
 					xAxis: {
 						type: 'category',
-						data: ['1号楼'],
+						data: this.dorm.floor.map(floor => floor + "楼"), // 使用处理后的楼层数据
 						axisLabel: {
 							color: '#fff',
 							fontWeight: 'bold'
@@ -433,7 +479,7 @@
 					},
 					series: [{
 							name: '入住床位',
-							 data:this.dorm.occupied,
+							data: this.dorm.occupied, // 使用处理后的入住床位数据
 							type: 'bar',
 							barWidth: '30%',
 							itemStyle: {
@@ -458,7 +504,7 @@
 						},
 						{
 							name: '剩余床位',
-							data: this.dorm.vacant,
+							data: this.dorm.vacant, // 使用处理后的剩余床位数据
 							type: 'bar',
 							barWidth: '30%',
 							itemStyle: {
@@ -485,7 +531,7 @@
 				};
 				chart3.setOption(option3);
 			},
-			createChart4(){
+			createChart4() {
 				// 新生各系人数 (柱状图)
 				var chart4 = this.$echarts.init(document.getElementById('chart4'));
 				var option4 = {
@@ -554,7 +600,7 @@
 				};
 				chart4.setOption(option4);
 			},
-			createChart5(){
+			createChart5() {
 				// 报到人数趋势 (双折线图)
 				var chart5 = this.$echarts.init(document.getElementById('chart5'));
 				var option5 = {
@@ -573,7 +619,7 @@
 					},
 					xAxis: {
 						type: 'category',
-						data: ['2022-08-27', '2022-08-28', '2022-08-29', '2022-08-30', '2022-08-31'],
+						data: this.trends.date,
 						axisLabel: {
 							color: '#fff',
 							fontWeight: 'bold'
