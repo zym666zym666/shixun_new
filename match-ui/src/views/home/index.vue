@@ -19,7 +19,7 @@
 					</template>
 					<el-menu-item index="/college">学院管理</el-menu-item>
 					<el-menu-item index="/notice">通知公告</el-menu-item>
-					<el-menu-item index="/users">用户管理</el-menu-item>
+					<el-menu-item index="/users">课程管理</el-menu-item>
 				</el-submenu>
 				<el-submenu index="3">
 					<template slot="title">
