@@ -6,29 +6,31 @@
 				<el-card class="box-card">
 					<el-input v-model="inputBuildingId" placeholder="请输入宿舍号" size="small"
 						class="filter-input"></el-input>
-					<el-button type="primary" size="small" icon="el-icon-plus" class="button" @click="handleCreate()"
-						plain>新增</el-button>
 					<el-button type="primary" icon="el-icon-search" size="small" plain
 						@click="selectDorm(inputBuildingId)">搜索</el-button>
-					<el-button type="primary" icon="el-icon-refresh-right" size="small" @click="resetSearch()">重置</el-button>
+					<el-button type="primary" icon="el-icon-refresh-right" size="small"
+						@click="resetSearch()">重置</el-button>
+					<el-button type="primary" size="small" icon="el-icon-plus" class="button" @click="handleCreate()"
+						plain>新增</el-button>
+					<el-button type="danger" size="small" icon="el-icon-delete" class="button" plain @click="handleBatchDelete()">批量删除</el-button>
 				</el-card>
 
 			</el-col>
 			<!-- 数据列表部分 -->
 			<el-card class="box-card data">
-				<el-table :data="tableData" style="width: 100%" size="small">
+				<el-table :data="tableData" style="width: 100%" size="small" @selection-change="handleSelectionChange">
 					<el-table-column type="selection" width="55"></el-table-column>
 
-					<el-table-column prop="building_id" label="宿舍号" width="80"></el-table-column>
+					<el-table-column prop="building_id" label="宿舍号" width="400%"></el-table-column>
 					<!-- 列标题为"最大容量"，内容固定为4 -->
-					<el-table-column label="最大容量" width="180">
+					<el-table-column label="最大容量" width="400%">
 						<template>
 							4 <!-- 这里固定显示为4 -->
 						</template>
 					</el-table-column>
 					<el-table-column prop="occupied_count" label="已入住人数"></el-table-column>
 
-					<el-table-column label="操作" align="center" width="180px">
+					<el-table-column label="操作" align="center" width="200%">
 						<template slot-scope="scope">
 							<el-button type="danger" size="small" icon="el-icon-delete" class="button" plain
 								@click="handleDelete(scope.row.building_id)">删除
@@ -36,11 +38,6 @@
 						</template>
 					</el-table-column>
 				</el-table>
-				<!-- 分页插件 -->
-				<el-pagination @size-change="handleSizeChange" @current-change="handleCurrentChange"
-					:current-page="currentPage4" :page-size="100" layout="total, prev, pager, next, jumper"
-					:total="100">
-				</el-pagination>
 			</el-card>
 		</el-row>
 		<!-- 添加弹框插件 -->
@@ -95,7 +92,7 @@
 			},
 
 			/**
-			 * 发布通知
+			 * 新增宿舍
 			 */
 			handleAdd() {
 				if (!this.formData.buildingId) {
@@ -165,21 +162,21 @@
 				});
 			},
 
-			//搜索宿舍
-			selectDorm(buildingId) {
-				if (!buildingId) {
-					this.$message.warning('请输入宿舍号进行搜索');
+			//关键字查询
+			selectDorm(keyword) {
+				if (!keyword) {
+					this.$message.warning('请输入搜索关键字');
 					return;
 				}
 
-				// 过滤宿舍列表，找到宿舍号匹配的数据
-				const filteredDorms = this.tableData.filter(dorm => dorm.building_id === buildingId);
+				// 过滤宿舍列表，找到宿舍号包含关键字的数据
+				const filteredDorms = this.tableData.filter(dorm => dorm.building_id.toString().includes(keyword));
 
 				if (filteredDorms.length > 0) {
 					this.tableData = filteredDorms; // 更新表格数据为搜索结果
 					this.$message.success('搜索到宿舍信息');
 				} else {
-					this.$message.warning('没有找到对应的宿舍信息');
+					this.$message.warning('没有找到包含关键字的宿舍信息');
 				}
 			},
 
@@ -188,6 +185,56 @@
 				this.inputBuildingId = ''; // 重置搜索输入框
 				this.handleQuery(); // 重新加载原始宿舍数据
 				this.$message.info('搜索已重置');
+			},
+
+			//批量删除宿舍
+			handleBatchDelete() {
+				const selectedRows = this.tableData.filter(item => item.selected);
+				const selectedIds = selectedRows.map(row => row.building_id);
+
+				if (selectedIds.length === 0) {
+					this.$message.warning('请选择至少一个宿舍进行删除');
+					return;
+				}
+				this.$confirm('此操作将永久删除选中宿舍, 是否继续?', '提示', {
+					confirmButtonText: '确定',
+					cancelButtonText: '取消',
+					type: 'warning'
+				}).then(() => {
+					console.log(selectedIds);
+					const it = `/DeleteDorms?buildingId=${selectedIds}`;
+					this.axios.post(it).then((res) => {
+						if (res.data.code == 200) {
+							this.$message.success("宿舍批量删除成功");
+							this.handleQuery(); // 重新加载数据
+						} else {
+							this.$message.error("宿舍批量删除失败");
+						}
+					}).catch(() => {
+						this.$message.error("网络连接错误，请稍后重试！");
+					});
+				}).catch(() => {
+					this.$message({
+						type: 'info',
+						message: '已取消批量删除'
+					});
+				});
+			},
+			handleSelectionChange(val) {
+				console.log("Selected Rows: ", val); // 打印选中的行数据
+				this.tableData.forEach(row => {
+					// 设置一个默认值，表示这行未被选中
+					row.selected = false;
+				});
+				// 然后遍历所有选中的行
+				val.forEach(selectedRow => {
+					// 根据唯一标识符（例如 building_id）来设置 selected 属性
+					this.tableData.forEach(row => {
+						if (row.building_id === selectedRow.building_id) {
+							row.selected = true;
+						}
+					});
+				});
 			},
 		}
 

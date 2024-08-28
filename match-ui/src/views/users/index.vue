@@ -7,15 +7,17 @@
 					<el-input v-model="searchName" placeholder="请输入课程名称" size="small" class="filter-input"></el-input>
 
 					<el-button type="primary" icon="el-icon-search" size="small" @click="getData()" plain>搜索</el-button>
-					<el-button type="primary" icon="el-icon-refresh-right" size="small" @click="resetSearch()">重置</el-button>
+					<el-button type="primary" icon="el-icon-refresh-right" size="small"
+						@click="resetSearch()">重置</el-button>
 					<el-button type="primary" size="small" icon="el-icon-plus" class="button" @click="handleCreate()"
 						plain>新增</el-button>
-
+					<el-button type="danger" size="small" icon="el-icon-delete" class="button" plain
+						@click="handleBatchDelete">批量删除</el-button>
 				</el-card>
 			</el-col>
 			<!-- 数据列表部分 -->
 			<el-card class="box-card data">
-				<el-table :data="tableData" style="width: 100%" size="small">
+				<el-table :data="tableData" style="width: 100%" size="small" @selection-change="handleSelectionChange">
 					<el-table-column type="selection" width="55"></el-table-column>
 					<el-table-column type="index" label="序号" width="80"></el-table-column>
 					<el-table-column prop="courseName" label="课程名称" width="180">
@@ -25,6 +27,10 @@
 					<el-table-column prop="coursePlace" label="上课地点">
 					</el-table-column>
 					<el-table-column prop="courseCapacity" label="课程容量">
+					</el-table-column>
+					<el-table-column prop="courseBeginTime" label="开课时间">
+					</el-table-column>
+					<el-table-column prop="courseEndTime" label="结课时间">
 					</el-table-column>
 					<el-table-column label="操作" align="center" width="180px">
 						<template slot-scope="scope">
@@ -37,35 +43,31 @@
 						</template>
 					</el-table-column>
 				</el-table>
-				<!-- 分页插件 -->
-				<el-pagination @size-change="handleSizeChange" @current-change="handleCurrentChange"
-					:current-page="pagination.currentPage" :page-size="pagination.pageSize"
-					layout="total, prev, pager, next, jumper" :total="pagination.total">
-				</el-pagination>
 			</el-card>
 		</el-row>
 		<!-- 添加弹框插件 -->
 		<div class="add-form">
-			<el-dialog title="新增用户" :visible.sync="dialogFormVisible">
+			<el-dialog title="新增课程" :visible.sync="dialogFormVisible">
 				<el-row>
 					<el-col :span="24">
 						<el-form :model="formData" :rules="rules" ref="formData">
-							<el-form-item label="课程名称" label-position="right" label-width="100px">
+							<el-form-item label="课程名称" prop="courseName" label-position="right" label-width="100px">
 								<el-input v-model="formData.courseName" autocomplete="off"></el-input>
 							</el-form-item>
-							<el-form-item label="任课教师" label-position="right" label-width="100px">
+							<el-form-item label="任课教师" prop="courseTeacher" label-position="right" label-width="100px">
 								<el-input v-model="formData.courseTeacher"></el-input>
 							</el-form-item>
-							<el-form-item label="上课地点" label-position="right" label-width="100px">
+							<el-form-item label="上课地点" prop="coursePlace" label-position="right" label-width="100px">
 								<el-input v-model="formData.coursePlace"></el-input>
 							</el-form-item>
-							<el-form-item label="课程容量" label-position="right" label-width="100px">
+							<el-form-item label="课程容量" prop="courseCapacity" label-position="right" label-width="100px">
 								<el-input v-model="formData.courseCapacity"></el-input>
 							</el-form-item>
-							<el-form-item label="开课时间" label-position="right" label-width="100px">
+							<el-form-item label="开课时间" prop="courseBeginTime" label-position="right"
+								label-width="100px">
 								<el-input v-model="formData.courseBeginTime"></el-input>
 							</el-form-item>
-							<el-form-item label="结课时间" label-position="right" label-width="100px">
+							<el-form-item label="结课时间" prop="courseEndTime" label-position="right" label-width="100px">
 								<el-input v-model="formData.courseEndTime"></el-input>
 							</el-form-item>
 
@@ -85,17 +87,24 @@
 				<el-row>
 					<el-col :span="24">
 						<el-form :model="formData" :rules="rules" ref="formData">
-							<el-form-item label="课程名称" label-position="right" label-width="100px">
+							<el-form-item label="课程名称" prop="courseName" label-position="right" label-width="100px">
 								<el-input v-model="formData.courseName" autocomplete="off"></el-input>
 							</el-form-item>
-							<el-form-item label="教师昵称" label-position="right" label-width="100px">
+							<el-form-item label="教师昵称" prop="courseTeacher" label-position="right" label-width="100px">
 								<el-input v-model="formData.courseTeacher"></el-input>
 							</el-form-item>
-							<el-form-item label="教学地点" label-position="right" label-width="100px">
+							<el-form-item label="教学地点" prop="coursePlace" label-position="right" label-width="100px">
 								<el-input v-model="formData.coursePlace"></el-input>
 							</el-form-item>
-							<el-form-item label="课程容量" label-position="right" label-width="100px">
+							<el-form-item label="课程容量" prop="courseCapacity" label-position="right" label-width="100px">
 								<el-input v-model="formData.courseCapacity"></el-input>
+							</el-form-item>
+							<el-form-item label="开始时间" prop="courseBeginTime" label-position="right"
+								label-width="100px">
+								<el-input v-model="formData.courseBeginTime"></el-input>
+							</el-form-item>
+							<el-form-item label="结束时间" prop="courseEndTime" label-position="right" label-width="100px">
+								<el-input v-model="formData.courseEndTime"></el-input>
 							</el-form-item>
 
 						</el-form>
@@ -117,10 +126,10 @@
 			return {
 				dialogFormVisible: false,
 				dialogFormVisibleEdit: false,
-				name: '',
-				date: '',
+
 				tableData: [],
-				searchName: '',
+				searchName: [],
+				
 				/* 表单数据 */
 				formData: {
 					courseName: '',
@@ -130,13 +139,41 @@
 					courseBeginTime: '',
 					courseEndTime: ''
 				},
+				/*数据校验 */
+				//注意：规则名需要和绑定的数据名一致，否则检验失败
+				rules: {
+					courseName: [{
+						required: true,
+						message: '请输入课程名称',
+						trigger: 'blur'
+					}],
+					courseTeacher: [{
+						required: true,
+						message: '请输入任课教师',
+						trigger: 'blur'
+					}],
+					coursePlace: [{
+						required: true,
+						message: '请输入上课地点',
+						trigger: 'blur'
+					}],
+					courseCapacity: [{
+						required: true,
+						message: '请输入课程容量(整数)',
+						trigger: 'blur'
+					}],
+					courseBeginTime: [{
+						required: true,
+						message: '请输入开课时间',
+						trigger: 'blur'
+					}],
+					courseEndTime: [{
+						required: true,
+						message: '请输入结课时间',
+						trigger: 'blur'
+					}]
+				}
 
-				/* 分页数据模型 */
-				pagination: {
-					currentPage: 1, //当前页码
-					pageSize: 7, //每页显示的记录数
-					total: 0, //总记录数
-				},
 			}
 		},
 		mounted() {
@@ -160,7 +197,7 @@
 			},
 			// 删除课程
 			deleteCourse(id) {
-				this.$confirm('此操作将永久删除数据, 是否继续?', '提示', {
+				this.$confirm('此操作将永久删除该课程, 是否继续?', '提示', {
 					confirmButtonText: '确定',
 					cancelButtonText: '取消',
 					type: 'warning'
@@ -169,11 +206,11 @@
 					const urll = `/deleteCourse?id=${id}`;
 					this.axios.post(urll).then((res) => {
 						if (res.data.code == 200) {
-							this.$message.success("数据删除成功")
+							this.$message.success("课程删除成功")
 							//重新加载数据
 							this.handleQuery()
 						} else {
-							this.$message.error("数据删除失败！")
+							this.$message.error("课程删除失败！")
 						}
 					})
 				}).catch(() => {
@@ -190,7 +227,7 @@
 					if (res.data.code == 200) {
 						this.tableData = res.data.data
 					} else {
-						this.$message.error("数据加载失败")
+						this.$message.error("课程加载失败")
 					}
 				}).catch(() => {
 					this.$message.error("网络连接错误,请稍后重试！");
@@ -198,86 +235,135 @@
 			},
 			//搜索课程
 			getData() {
-				if(!this.searchName)
-				{
+				if (!this.searchName) {
 					this.$message.warning('请输入课程名称');
 					return;
 				}
-				const it = this.tableData.filter(dorm => dorm.courseName=== this.searchName);
-				
-								if (it.length > 0) {
-									this.tableData = it; // 更新表格数据为搜索结果
-									this.$message.success('搜索到课程信息');
+
+				// 将搜索词拆分为关键词数组
+				const keywords = this.searchName.trim().split(/\s+/); // 假设关键词之间用空格分隔
+
+				// 创建一个正则表达式，包含所有关键词
+				const regex = new RegExp(keywords.join('|'), 'i'); // 'i' 表示不区分大小写
+
+				// 使用正则表达式来检查课程名称是否包含所有关键词
+				const it = this.tableData.filter(item => regex.test(item.courseName));
+
+				if (it.length > 0) {
+					this.tableData = it; // 更新表格数据为搜索结果
+					this.$message.success("搜索到相关的课程");
+					}
+					else {
+						this.$message.warning('没有找到包含所有关键词的课程信息，请检查输入是否正确');
+					}
+				},
+				/* 添加课程信息 */
+				handleAdd() {
+						this.$refs.formData.validate((valid) => {
+							if (valid) {
+								this.axios.post("/insertCourse", this.formData).then((res) => {
+									if (res.data.code == 200) {
+										if (res.data.data == 20) {
+											this.$message.error("课程已存在,请勿重复添加");
+										} else {
+											this.$message.success("课程信息已发布");
+											//关闭登记窗口
+											this.dialogFormVisible = false;
+											//重置表单
+											this.formData = {};
+											// //查询数据
+											this.handleQuery();
+
+										}
+									} else {
+										this.$message.error(res.data.msg);
+									}
+								}).catch(() => {
+									this.$message.error("网络连接错误,请稍后重试！");
+								})
+							} else {
+								this.$message.error("请输入信息");
+							}
+						})
+					},
+
+					/* 修改课程信息 */
+					handleEdit() {
+						this.$refs.formData.validate((valid) => {
+							if (valid) {
+								this.axios.post("/updateCourse", this.formData).then((res) => {
+									if (res.data.code == 200) {
+										if (res.data.data == 20) {
+											this.$message.error("该课程已存在，修改冲突，请重新修改课程信息");
+										} else {
+											this.$message.success("课程信息修改成功");
+											//关闭登记窗口
+											this.dialogFormVisibleEdit = false;
+											//重置表单
+											this.formData = {}
+											// //查询数据
+											this.handleQuery();
+										}
+
+
+									} else {
+										this.$message.success(res.data.msg);
+									}
+								}).catch(() => {
+									this.$message.error("网络连接错误,请稍后重试！");
+								})
+							} else {
+								this.$message.error("请输入信息");
+							}
+						})
+					},
+
+					//批量删除课程
+					handleBatchDelete() {
+						console.log("1111", this.tableData);
+						const selectedRows = this.tableData.filter(item => item.selected);
+						const selectedIds = selectedRows.map(row => row.courseId);
+						if (selectedIds.length === 0) {
+							this.$message.warning('请选择至少一门课程进行删除');
+							return;
+						}
+						this.$confirm('此操作将永久删除选中课程, 是否继续?', '提示', {
+							confirmButtonText: '确定',
+							cancelButtonText: '取消',
+							type: 'warning'
+						}).then(() => {
+
+							console.log(selectedIds);
+							const it = `/DeleteCourses?ids=${selectedIds}`;
+							this.axios.post(it).then((res) => {
+								if (res.data.code == 200) {
+									this.$message.success("课程批量删除成功");
+									this.handleQuery(); // 重新加载数据
 								} else {
-									this.$message.warning('没有找到对应的课程信息，请检查输入是否正确');
+									this.$message.error("课程批量删除失败");
 								}
-			},
-			/* 添加课程信息 */
-			handleAdd() {
-				this.$refs.formData.validate((valid) => {
-					if (valid) {
-						this.axios.post("/insertCourse", this.formData).then((res) => {
-							if (res.data.code == 200) {
-								this.$message.success("通知信息已发布");
-								//关闭登记窗口
-								this.dialogFormVisible = false;
-								//重置表单
-								this.formData = {}
-								// //查询数据
-								this.handleQuery();
-
-							} else {
-								this.$message.success(res.data.msg);
-							}
+							}).catch(() => {
+								this.$message.error("网络连接错误，请稍后重试！");
+							});
 						}).catch(() => {
-							this.$message.error("网络连接错误,请稍后重试！");
-						})
-					} else {
-						this.$message.error("请输入信息");
-					}
-				})
-			},
+							this.$message({
+								type: 'info',
+								message: '已取消批量删除'
+							});
+						});
+					},
+					handleSelectionChange(val) {
+						this.tableData.forEach((row) => {
+							row.selected = val.includes(row);
+						});
+					},
 
-			/* 修改课程信息 */
-			handleEdit() {
-				this.$refs.formData.validate((valid) => {
-					if (valid) {
-						this.axios.post("/updateCourse", this.formData).then((res) => {
-							if (res.data.code == 200) {
-								this.$message.success("通知信息已发布");
-								//关闭登记窗口
-								this.dialogFormVisibleEdit = false;
-								//重置表单
-								this.formData = {}
-								// //查询数据
-								// this.handleQuery()
 
-							} else {
-								this.$message.success(res.data.msg);
-							}
-						}).catch(() => {
-							this.$message.error("网络连接错误,请稍后重试！");
-						})
-					} else {
-						this.$message.error("请输入信息");
-					}
-				})
-			},
+					/* 条件查询 */
 
-			
-
-			/* 分页查询数据 */
-			handleCurrentChange(currentPage) {
-				this.pagination.currentPage = currentPage
-				//重新加载数据
-				this.handleQuery()
-			},
-
-			/* 条件查询 */
+			}
 
 		}
-
-	}
 </script>
 
 <style scoped>
@@ -304,11 +390,7 @@
 		padding: 5px 0 !important;
 	}
 
-	/* 分页插件样式 */
-	.el-pagination {
-		margin: 10px;
-		float: right;
-	}
+
 
 	.el-switch {
 		margin-top: 10px;

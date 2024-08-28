@@ -20,7 +20,7 @@
 			<el-card class="box-card data">
 				<el-table :data="tableData" style="width: 100%" size="small" @selection-change="handleSelectionChange">
 					<el-table-column type="selection" width="55"></el-table-column>
-					<el-table-column prop="id" label="序号" width="80">
+					<el-table-column type="index" prop="id" label="序号" width="80">
 					</el-table-column>
 					<el-table-column prop="title" label="通知标题" width="180">
 					</el-table-column>
