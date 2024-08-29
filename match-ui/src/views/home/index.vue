@@ -40,14 +40,14 @@
 						<i v-if="!isCollapse" class="el-icon-s-fold"></i>
 					</div>
 				</div>
-				<p class="subtitle">创新竞赛管理平台</p>
+				<p class="subtitle">重庆大学教学后台</p>
 				<div class="user">
 					<div class="avatar">
 						<img src="../../assets/u169.svg" />
 					</div>
 					<el-dropdown placement="top">
 						<span class="el-dropdown-link">
-							熊初墨<i class="el-icon-arrow-down el-icon--right"></i>
+							管理员<i class="el-icon-arrow-down el-icon--right"></i>
 						</span>
 						<el-dropdown-menu slot="dropdown">
 							<el-dropdown-item>个人中心</el-dropdown-item>

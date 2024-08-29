@@ -479,7 +479,7 @@
 					},
 					series: [{
 							name: '入住床位',
-							data: this.dorm.occupied, // 使用处理后的入住床位数据
+							data: this.dorm.vacant, // 使用处理后的入住床位数据
 							type: 'bar',
 							barWidth: '30%',
 							itemStyle: {
@@ -504,7 +504,7 @@
 						},
 						{
 							name: '剩余床位',
-							data: this.dorm.vacant, // 使用处理后的剩余床位数据
+							data: this.dorm.occupied, // 使用处理后的剩余床位数据
 							type: 'bar',
 							barWidth: '30%',
 							itemStyle: {
@@ -938,7 +938,7 @@
 
 	.chart4 {
 		height: 220px;
-		width: 700px;
+		width: 800px;
 	}
 
 	.chart5 {
