@@ -130,7 +130,7 @@
 				trends: {
 					online: [520, 202, 60],
 					date:[],
-					onsite: [0, 0, 0]
+					onsite: [0, 0, 0,0]
 				}
 			}
 		},
@@ -937,8 +937,9 @@
 	}
 
 	.chart4 {
+		margin-left: 20px;
 		height: 220px;
-		width: 800px;
+		width: 700px;
 	}
 
 	.chart5 {
